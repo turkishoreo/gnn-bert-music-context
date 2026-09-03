@@ -1,0 +1,92 @@
+[
+  {
+    "query_caption_for_track": "synth_00014",
+    "top3_matched_track_ids": [
+      "synth_00031",
+      "synth_00104",
+      "synth_00125"
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "query_caption_for_track": "synth_00023",
+    "top3_matched_track_ids": [
+      "synth_00023",
+      "synth_00162",
+      "synth_00199"
+    ],
+    "correct_in_top3": true
+  },
+  {
+    "query_caption_for_track": "synth_00030",
+    "top3_matched_track_ids": [
+      "synth_00030",
+      "synth_00060",
+      "synth_00014"
+    ],
+    "correct_in_top3": true
+  },
+  {
+    "query_caption_for_track": "synth_00031",
+    "top3_matched_track_ids": [
+      "synth_00023",
+      "synth_00125",
+      "synth_00143"
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "query_caption_for_track": "synth_00032",
+    "top3_matched_track_ids": [
+      "synth_00023",
+      "synth_00143",
+      "synth_00105"
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "query_caption_for_track": "synth_00051",
+    "top3_matched_track_ids": [
+      "synth_00051",
+      "synth_00014",
+      "synth_00032"
+    ],
+    "correct_in_top3": true
+  },
+  {
+    "query_caption_for_track": "synth_00060",
+    "top3_matched_track_ids": [
+      "synth_00030",
+      "synth_00097",
+      "synth_00014"
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "query_caption_for_track": "synth_00067",
+    "top3_matched_track_ids": [
+      "synth_00106",
+      "synth_00125",
+      "synth_00051"
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "query_caption_for_track": "synth_00068",
+    "top3_matched_track_ids": [
+      "synth_00068",
+      "synth_00051",
+      "synth_00104"
+    ],
+    "correct_in_top3": true
+  },
+  {
+    "query_caption_for_track": "synth_00069",
+    "top3_matched_track_ids": [
+      "synth_00051",
+      "synth_00178",
+      "synth_00134"
+    ],
+    "correct_in_top3": false
+  }
+]

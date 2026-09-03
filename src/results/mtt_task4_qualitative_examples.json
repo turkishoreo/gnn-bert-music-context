@@ -1,0 +1,102 @@
+[
+  {
+    "clip_id": 58295,
+    "query_caption": "guitar classical slow violin vocal female opera quiet woman soft female voice",
+    "top3_matched_clip_ids": [
+      16731,
+      17224,
+      12047
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "clip_id": 26576,
+    "query_caption": "violin",
+    "top3_matched_clip_ids": [
+      47752,
+      2069,
+      35706
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "clip_id": 2062,
+    "query_caption": "fast no voice",
+    "top3_matched_clip_ids": [
+      47752,
+      35336,
+      22593
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "clip_id": 14689,
+    "query_caption": "classical male soft",
+    "top3_matched_clip_ids": [
+      50619,
+      4579,
+      31469
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "clip_id": 805,
+    "query_caption": "female",
+    "top3_matched_clip_ids": [
+      36800,
+      28434,
+      57973
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "clip_id": 43218,
+    "query_caption": "strings electronic piano ambient synth",
+    "top3_matched_clip_ids": [
+      26576,
+      12835,
+      33042
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "clip_id": 43919,
+    "query_caption": "opera male",
+    "top3_matched_clip_ids": [
+      35706,
+      22593,
+      12866
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "clip_id": 29880,
+    "query_caption": "slow drums no vocals sitar",
+    "top3_matched_clip_ids": [
+      2062,
+      36127,
+      8990
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "clip_id": 50311,
+    "query_caption": "guitar slow piano beat",
+    "top3_matched_clip_ids": [
+      36127,
+      18765,
+      43604
+    ],
+    "correct_in_top3": false
+  },
+  {
+    "clip_id": 20616,
+    "query_caption": "no vocals no vocal",
+    "top3_matched_clip_ids": [
+      36800,
+      28434,
+      57973
+    ],
+    "correct_in_top3": false
+  }
+]

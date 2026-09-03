@@ -1,0 +1,49 @@
+# Central config for the GNN-BERT music context pipeline.
+# Command-line flags in train.py / evaluate.py override these.
+
+data:
+  synthetic: true          # set false once real datasets are in data/raw/
+  raw_dir: data/raw
+  processed_dir: data/processed
+  splits_dir: data/splits
+  num_tags: 50              # top-K tags (MagnaTagATune-style)
+  sample_rate: 22050
+  n_mels: 128
+  n_chroma: 12
+  segment_seconds: 5
+  max_text_len: 128
+
+bert:
+  pretrained_name: bert-base-uncased   # requires internet; ignored when data.synthetic=true
+  synthetic_hidden_size: 128
+  synthetic_num_layers: 2
+  freeze_encoder: false
+  learning_rate: 2e-5
+
+gnn:
+  encoder: graphsage        # graphsage | gat
+  hidden_dim: 128
+  num_layers: 3
+  dropout: 0.2
+  learning_rate: 1e-3
+
+fusion:
+  type: cross_attention      # cross_attention | concat
+  attn_heads: 4
+  emotion_loss_weight: 1.0   # alpha, beta in the spec's multi-task loss
+
+contrastive:
+  temperature: 0.07
+  embedding_dim: 128
+
+train:
+  batch_size: 16
+  epochs: 3
+  device: cpu                # cuda if available
+  seed: 42
+
+baselines:
+  - majority
+  - cnn_melspec
+  - bert_only
+  - pca_mlp
