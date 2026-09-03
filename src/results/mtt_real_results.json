@@ -1,0 +1,42 @@
+{
+  "dataset": "MagnaTagATune (real)",
+  "task1_bert": {
+    "test_macro_f1": 0.012275132275132274,
+    "test_micro_f1": 0.050156739811912224,
+    "test_mean_aucpr": 0.1735841331628771
+  },
+  "n_train": 600,
+  "n_val": 100,
+  "n_test": 100,
+  "num_tags": 50,
+  "task3_ablations": {
+    "gnn_only": {
+      "test_macro_f1": 0.011826839826839826,
+      "test_micro_f1": 0.025078369905956112,
+      "test_mean_aucpr": 0.12430962763102875
+    },
+    "bert_only": {
+      "test_macro_f1": 0.018006734006734006,
+      "test_micro_f1": 0.062111801242236024,
+      "test_mean_aucpr": 0.17787822979829246
+    },
+    "concat": {
+      "test_macro_f1": 0.04416025641025641,
+      "test_micro_f1": 0.1027190332326284,
+      "test_mean_aucpr": 0.20779953165862428
+    },
+    "cross_attention": {
+      "test_macro_f1": 0.032277489177489176,
+      "test_micro_f1": 0.08875739644970414,
+      "test_mean_aucpr": 0.15882806436446353
+    }
+  },
+  "task4_contrastive": {
+    "audio2caption_R@1": 0.029999999329447746,
+    "audio2caption_R@5": 0.12999999523162842,
+    "audio2caption_R@10": 0.2800000011920929,
+    "caption2audio_R@1": 0.009999999776482582,
+    "caption2audio_R@5": 0.10000000149011612,
+    "caption2audio_R@10": 0.23999999463558197
+  }
+}

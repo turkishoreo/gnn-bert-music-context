@@ -1,0 +1,85 @@
+{
+  "task1": [
+    {
+      "epoch": 1,
+      "train_loss": 0.7572590589523316,
+      "val_macro_f1": 0.12159598562058022
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.7344569623470306,
+      "val_macro_f1": 0.11913163233339615
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.7124769210815429,
+      "val_macro_f1": 0.11080283690284201
+    }
+  ],
+  "task2": [
+    {
+      "epoch": 1,
+      "train_loss": 0.6426372587680816,
+      "val_macro_f1": 0.013517241379310345
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.4127778261899948,
+      "val_macro_f1": 0.0
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.3542210072278976,
+      "val_macro_f1": 0.0
+    }
+  ],
+  "task3": [
+    {
+      "epoch": 1,
+      "train_loss": 19.141695523262023,
+      "val_macro_f1": 0.002758620689655172
+    },
+    {
+      "epoch": 2,
+      "train_loss": 5.995084047317505,
+      "val_macro_f1": 0.0
+    },
+    {
+      "epoch": 3,
+      "train_loss": 4.472602581977844,
+      "val_macro_f1": 0.0
+    }
+  ],
+  "task4": [
+    {
+      "epoch": 1,
+      "train_loss": 2.6723567724227903,
+      "audio2caption_R@1": 0.07407407462596893,
+      "audio2caption_R@5": 0.18518517911434174,
+      "audio2caption_R@10": 0.4444444477558136,
+      "caption2audio_R@1": 0.03703703731298447,
+      "caption2audio_R@5": 0.14814814925193787,
+      "caption2audio_R@10": 0.37037035822868347
+    },
+    {
+      "epoch": 2,
+      "train_loss": 2.3084398806095123,
+      "audio2caption_R@1": 0.0,
+      "audio2caption_R@5": 0.07407407462596893,
+      "audio2caption_R@10": 0.40740740299224854,
+      "caption2audio_R@1": 0.03703703731298447,
+      "caption2audio_R@5": 0.14814814925193787,
+      "caption2audio_R@10": 0.3333333432674408
+    },
+    {
+      "epoch": 3,
+      "train_loss": 1.1048677855171263,
+      "audio2caption_R@1": 0.0,
+      "audio2caption_R@5": 0.1111111119389534,
+      "audio2caption_R@10": 0.40740740299224854,
+      "caption2audio_R@1": 0.0,
+      "caption2audio_R@5": 0.14814814925193787,
+      "caption2audio_R@10": 0.37037035822868347
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+[
+  {
+    "track_id": "metal.00074",
+    "true_genre": "metal",
+    "predicted_genre": "metal",
+    "confidence": 0.9041,
+    "correct": true
+  },
+  {
+    "track_id": "jazz.00035",
+    "true_genre": "jazz",
+    "predicted_genre": "classical",
+    "confidence": 0.3678,
+    "correct": false
+  },
+  {
+    "track_id": "metal.00013",
+    "true_genre": "metal",
+    "predicted_genre": "metal",
+    "confidence": 0.2976,
+    "correct": true
+  },
+  {
+    "track_id": "rock.00096",
+    "true_genre": "rock",
+    "predicted_genre": "metal",
+    "confidence": 0.4414,
+    "correct": false
+  },
+  {
+    "track_id": "pop.00012",
+    "true_genre": "pop",
+    "predicted_genre": "disco",
+    "confidence": 0.2458,
+    "correct": false
+  }
+]
