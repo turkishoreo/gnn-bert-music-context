@@ -28,6 +28,13 @@ from contrastive import DualEncoder, info_nce_loss, retrieval_recall_at_k, top_k
 
 HIDDEN_DIM = 32  # synthetic graph node-feature width, see synthetic_data.py
 
+# Always resolve results/ and config.yaml relative to the project root (the
+# parent of this src/ folder), not the current working directory -- so it
+# doesn't matter whether you run `python train.py` from the project root or
+# from inside src/.
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
+
 
 def set_seed(seed):
     random.seed(seed)
@@ -35,7 +42,10 @@ def set_seed(seed):
     torch.manual_seed(seed)
 
 
-def load_config(path="config.yaml"):
+def load_config(path=None):
+    """Defaults to <project_root>/config.yaml regardless of current working directory."""
+    if path is None:
+        path = os.path.join(PROJECT_ROOT, "config.yaml")
     if os.path.exists(path):
         with open(path) as f:
             return yaml.safe_load(f)
@@ -284,7 +294,7 @@ def main():
     p.add_argument("--epochs", type=int, default=None)
     p.add_argument("--batch_size", type=int, default=None)
     p.add_argument("--n_tracks", type=int, default=300)
-    p.add_argument("--config", default="config.yaml")
+    p.add_argument("--config", default=None, help="defaults to <project_root>/config.yaml")
     p.add_argument("--baseline", choices=["majority", "cnn_melspec", "bert_only", "pca_mlp"], default=None)
     args = p.parse_args()
 
@@ -306,8 +316,8 @@ def main():
     trainers = {1: train_task1, 2: train_task2, 3: train_task3, 4: train_task4}
     model, history = trainers[args.task](cfg, args, split)
 
-    os.makedirs("results", exist_ok=True)
-    metrics_path = "results/metrics.json"
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    metrics_path = os.path.join(RESULTS_DIR, "metrics.json")
     all_metrics = {}
     if os.path.exists(metrics_path):
         with open(metrics_path) as f:
@@ -318,7 +328,7 @@ def main():
     print(f"wrote {metrics_path}")
 
     if args.task == 4:
-        save_qualitative_retrieval(model, split["test"], args.graph, "results/retrieval_examples")
+        save_qualitative_retrieval(model, split["test"], args.graph, os.path.join(RESULTS_DIR, "retrieval_examples"))
         print("wrote results/retrieval_examples/task4_qualitative_examples.json")
 
     return model, split, cfg

@@ -19,6 +19,9 @@ from sklearn.metrics import f1_score, accuracy_score
 
 from gnn_model import CNNMelBaseline
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
+
 GENRES = ["blues", "classical", "country", "disco", "hiphop",
           "jazz", "metal", "pop", "reggae", "rock"]
 GENRE_TO_IDX = {g: i for i, g in enumerate(GENRES)}
@@ -107,8 +110,8 @@ def main():
 
     # merge into the same results file train_gtzan.py writes, so you have one
     # place with GNN vs CNN vs majority for your report table
-    os.makedirs("results", exist_ok=True)
-    out_path = "results/gtzan_real_results.json"
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    out_path = os.path.join(RESULTS_DIR, "gtzan_real_results.json")
     existing = {}
     if os.path.exists(out_path):
         with open(out_path) as f:

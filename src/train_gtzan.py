@@ -20,6 +20,12 @@ from sklearn.metrics import f1_score, accuracy_score
 
 from gnn_model import GNNTagClassifier
 
+# Always resolve results/ relative to the project root (the parent of this
+# src/ folder), not the current working directory -- so it doesn't matter
+# whether you run this script from the project root or from inside src/.
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
+
 GENRES = ["blues", "classical", "country", "disco", "hiphop",
           "jazz", "metal", "pop", "reggae", "rock"]
 GENRE_TO_IDX = {g: i for i, g in enumerate(GENRES)}
@@ -154,7 +160,7 @@ def main():
 
     examples = save_example_predictions(
         model, split["test"], test_graphs, test_labels,
-        out_path="results/gtzan_example_predictions.json", n_examples=args.n_examples,
+        out_path=os.path.join(RESULTS_DIR, "gtzan_example_predictions.json"), n_examples=args.n_examples,
     )
     print(f"\n== {len(examples)} example predictions ==")
     for ex in examples:
@@ -163,8 +169,8 @@ def main():
               f"pred={ex['predicted_genre']} (conf={ex['confidence']})  [{mark}]")
     print("wrote results/gtzan_example_predictions.json")
 
-    os.makedirs("results", exist_ok=True)
-    out_path = "results/gtzan_real_results.json"
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    out_path = os.path.join(RESULTS_DIR, "gtzan_real_results.json")
     existing = {}
     if os.path.exists(out_path):
         with open(out_path) as f:

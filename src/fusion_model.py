@@ -81,7 +81,7 @@ class GNNBERTFusion(nn.Module):
             self.valence_head = nn.Linear(z_dim, 1)
             self.arousal_head = nn.Linear(z_dim, 1)
 
-    def forward(self, x, edge_index, batch, input_ids, attention_mask=None):
+    def forward(self, x, edge_index, batch, input_ids, attention_mask=None, return_z=False):
         _, g = self.gnn(x, edge_index, batch)
         H_text, t = self.bert(input_ids, attention_mask)
 
@@ -93,6 +93,8 @@ class GNNBERTFusion(nn.Module):
 
         tag_logits = self.tag_head(z)
         out = {"tag_logits": tag_logits}
+        if return_z:
+            out["z"] = z
         if self.predict_emotion:
             out["valence"] = self.valence_head(z).squeeze(-1)
             out["arousal"] = self.arousal_head(z).squeeze(-1)

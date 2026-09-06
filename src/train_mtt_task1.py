@@ -4,11 +4,12 @@ tags (prepared by prepare_magnatagatune.py). Uses a REAL pretrained BERT
 (bert-base-uncased via HuggingFace) -- needs internet access the first time it
 runs, to download the weights.
 
-Per spec Section 4.1, the text input is built from the clip's own tags (a proxy
-for a caption, since MTT's tags ARE its text annotations): e.g. tags
-["piano", "classical", "slow"] -> the text "piano classical slow" is fed to BERT.
-This mirrors the spec's suggested "MusicCaps caption -> tag proxy task" but using
-MTT's tags-as-text directly, since that's the text/tag dataset we prepared.
+The text input is each clip's own metadata (artist name and track title, parsed
+from its filename) -- NOT its own tags. An earlier version of this script fed
+each clip's own tags in as the input text while asking the model to predict
+those same tags as the label, which is circular (the model can only learn to
+echo the label back) and visibly collapsed during training. See tags_to_text()
+below for the corrected, non-circular design.
 
 Run prepare_magnatagatune.py first. Then:
     python train_mtt_task1.py --config ../config.yaml --epochs 5
@@ -24,6 +25,9 @@ import yaml
 from sklearn.metrics import f1_score, precision_recall_curve, auc
 
 from bert_encoder import BertTagClassifier
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
 
 
 def load_split(splits_dir):
@@ -185,8 +189,8 @@ def main():
     for ex in examples:
         print(f"  clip {ex['clip_id']}: true={ex['true_tags']}  pred_top5={ex['predicted_top5_tags']}")
 
-    os.makedirs("results", exist_ok=True)
-    out_path = "results/mtt_real_results.json"
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    out_path = os.path.join(RESULTS_DIR, "mtt_real_results.json")
     existing = {}
     if os.path.exists(out_path):
         with open(out_path) as f:
@@ -200,7 +204,7 @@ def main():
     })
     with open(out_path, "w") as f:
         json.dump(existing, f, indent=2)
-    with open("results/mtt_task1_examples.json", "w") as f:
+    with open(os.path.join(RESULTS_DIR, "mtt_task1_examples.json"), "w") as f:
         json.dump(examples, f, indent=2)
     print(f"\nwrote {out_path} and results/mtt_task1_examples.json")
 

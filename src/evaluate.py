@@ -5,9 +5,13 @@ held-out test performance for any of the 4 tasks on the synthetic smoke-test dat
     python evaluate.py --task 3 --synthetic
 """
 import argparse
+import os
 import numpy as np
 import torch
 from sklearn.metrics import f1_score, precision_recall_curve, auc, r2_score
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_TSNE_PATH = os.path.join(PROJECT_ROOT, "results", "plots", "tsne.png")
 
 
 def macro_micro_f1(y_true, y_pred):
@@ -46,13 +50,16 @@ def graph_coherence_score(node_embeddings, edge_index, threshold=0.7):
     return (sims > threshold).float().mean().item()
 
 
-def tsne_plot(embeddings, labels, out_path="results/plots/tsne.png", title="t-SNE"):
+def tsne_plot(embeddings, labels, out_path=None, title="t-SNE"):
     """t-SNE of fused embeddings z, coloured by a label array (genre or mood id).
     Deliverable for Task 3. Requires matplotlib + sklearn (both in requirements.txt)."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     from sklearn.manifold import TSNE
+
+    if out_path is None:
+        out_path = DEFAULT_TSNE_PATH
 
     emb = embeddings.detach().cpu().numpy() if torch.is_tensor(embeddings) else embeddings
     n = emb.shape[0]
@@ -82,7 +89,7 @@ def main():
     p.add_argument("--batch_size", type=int, default=16)
     p.add_argument("--graph", choices=["segment", "chord"], default="segment")
     p.add_argument("--n_tracks", type=int, default=300)
-    p.add_argument("--config", default="config.yaml")
+    p.add_argument("--config", default=None, help="defaults to <project_root>/config.yaml")
     args = p.parse_args()
 
     if not args.synthetic:

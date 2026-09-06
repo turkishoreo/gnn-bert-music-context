@@ -32,6 +32,9 @@ from gnn_model import GNNTagClassifier
 from fusion_model import GNNBERTFusion
 from train_mtt_task1 import (load_split, tags_to_text, macro_micro_f1, mean_auc_pr)
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
+
 GRAPH_IN_DIM = 32  # matches graph_builder.segment_graph's default proj_dim
 
 
@@ -50,6 +53,40 @@ def batches(records, batch_size, shuffle=False):
     for i in range(0, len(idx), batch_size):
         sel = idx[i:i + batch_size]
         yield [records[j] for j in sel]
+
+
+def batches_no_skip(records, batch_size):
+    """Like batches() but never drops a final small batch -- used for embedding
+    extraction, where we want every test-set track represented in the t-SNE plot."""
+    idx = np.arange(len(records))
+    for i in range(0, len(idx), batch_size):
+        sel = idx[i:i + batch_size]
+        yield [records[j] for j in sel]
+
+
+@torch.no_grad()
+def save_z_embeddings(model, records, tag_vocab, batch_size, max_len, out_path):
+    """Extracts the fused representation z for each test track (spec Section 4.3
+    deliverable: 't-SNE of z coloured by genre and mood'). Since MagnaTagATune is
+    multi-label (no single genre field), colors by each track's most frequent
+    active tag as a practical stand-in -- documented simplification, not a real
+    genre label."""
+    model.eval()
+    all_z, all_labels = [], []
+    for batch in batches_no_skip(records, batch_size):
+        g = Batch.from_data_list([load_graph(r) for r in batch])
+        texts = [tags_to_text(r) for r in batch]
+        ids, mask = model.bert.tokenize(texts, max_len=max_len)
+        out = model(g.x, g.edge_index, g.batch, ids, mask, return_z=True)
+        all_z.append(out["z"])
+        for r in batch:
+            active = [i for i, v in enumerate(r["tag_vector"]) if v == 1]
+            all_labels.append(active[0] if active else -1)
+    z = torch.cat(all_z).numpy()
+    labels = np.array(all_labels)
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    np.savez(out_path, z=z, labels=labels, tag_vocab=np.array(tag_vocab))
+    return z, labels
 
 
 def build_model(ablation, num_tags, cfg, freeze_encoder):
@@ -173,8 +210,8 @@ def main():
     print(f"[{args.ablation}] macro_f1={test_macro:.4f}  micro_f1={test_micro:.4f}  "
           f"mean_aucpr={test_aucpr:.4f}")
 
-    os.makedirs("results", exist_ok=True)
-    out_path = "results/mtt_real_results.json"
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    out_path = os.path.join(RESULTS_DIR, "mtt_real_results.json")
     existing = {}
     if os.path.exists(out_path):
         with open(out_path) as f:

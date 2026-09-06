@@ -29,6 +29,9 @@ from torch_geometric.data import Batch
 from contrastive import DualEncoder, info_nce_loss, retrieval_recall_at_k, top_k_matches
 from train_mtt_task1 import load_split
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
+
 
 def caption_text(rec):
     """Tags joined into a short pseudo-caption -- the text side of each
@@ -159,13 +162,13 @@ def main():
 
     examples = save_qualitative_examples(
         model, split["test"], args.batch_size, max_len,
-        "results/mtt_task4_qualitative_examples.json", n_examples=args.n_examples,
+        os.path.join(RESULTS_DIR, "mtt_task4_qualitative_examples.json"), n_examples=args.n_examples,
     )
     n_correct = sum(e["correct_in_top3"] for e in examples)
     print(f"\n{n_correct}/{len(examples)} qualitative examples had correct audio in top-3")
 
-    os.makedirs("results", exist_ok=True)
-    out_path = "results/mtt_real_results.json"
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    out_path = os.path.join(RESULTS_DIR, "mtt_real_results.json")
     existing = {}
     if os.path.exists(out_path):
         with open(out_path) as f:
