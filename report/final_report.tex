@@ -6,6 +6,8 @@
 \usepackage{textcomp}
 \usepackage{booktabs}
 \usepackage{url}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 \begin{document}
 
@@ -37,6 +39,14 @@ Music is a multi-layered signal in which ``context'' spans melody, harmony, rhyt
 This project builds a hybrid BERT + Graph Neural Network (GNN) system that targets music context \emph{understanding} rather than music generation. BERT supplies contextual language representations from tags and metadata text; a GNN performs message passing over music structure graphs built from chroma features (chord-transition and segment-similarity graphs). The two representations are combined and evaluated across four tasks of increasing difficulty: multi-label tag classification from text alone, genre classification from structure alone, fusion of both modalities with an ablation study, and contrastive cross-modal retrieval.
 
 A central aim of this report is to be an honest account of what was actually built and measured on real data, including two real, informative negative results (Sections~\ref{sec:task2results}, \ref{sec:task4results}) and one design flaw that was caught and corrected during development (Section~\ref{sec:task1model}).
+
+\section{Related Work}
+Automatic music tagging has progressed from hand-crafted audio features toward learned representations. Deep convolutional models trained directly on mel-spectrograms established strong baselines for tag and genre prediction, motivating this project's choice of a CNN mel-spectrogram baseline for Task 2. Separately, graph-based representations have recently been applied to music information retrieval: Korzeniowski et al.~\cite{gnn_mir} use graph neural networks over artist co-occurrence graphs for artist similarity, demonstrating that relational structure carries information that purely content-based audio features do not capture on their own --- a motivation this project extends to intra-track structure (chord/segment graphs) rather than inter-track artist graphs.
+
+On the language side, BERT~\cite{bert} has become the standard contextual text encoder for downstream classification, which is why it was chosen as the text tower for Tasks 1, 3, and 4. For cross-modal audio-text learning specifically, Contrastive Language-Audio Pretraining (CLAP)~\cite{clap} demonstrated that a dual-encoder trained with a symmetric contrastive objective over large-scale audio-caption pairs learns a shared embedding space useful for zero-shot classification and retrieval; Task 4's dual-encoder follows the same contrastive design principle at a far smaller scale. MusicLM~\cite{musiclm} introduced the MusicCaps caption dataset that the original project specification envisions for Task 4; as discussed in Section~\ref{sec:task4results}, MusicCaps was not used in this reproduction because it distributes only YouTube video identifiers rather than downloadable audio, and tag-based pseudo-captions were used instead as a documented substitute.
+
+\section{Related Work}
+Music tagging has traditionally been approached with convolutional or recurrent networks operating directly on spectrograms, which learn strong local acoustic features but do not explicitly model relational structure between distant parts of a track. Graph-based approaches to audio, following the general inductive representation learning framework of GraphSAGE \cite{graphsage}, allow a model to aggregate information over an explicit relational structure (e.g. chord transitions or segment similarity) rather than a fixed local receptive field. Separately, pretrained language models such as BERT \cite{bert} have become the default choice for encoding free-form text such as tags, lyrics, or captions, given their strong contextual representations even in low-resource or frozen-encoder settings. Contrastive representation learning, following InfoNCE-style objectives \cite{infonce}, has become a standard approach for aligning two modalities (here, audio structure and text) into a shared embedding space without requiring paired supervised labels for every downstream task, and underlies recent audio-text and image-text retrieval systems. This project sits at the intersection of these three lines of work: it does not propose a new architecture, but combines GraphSAGE-style structural encoding, BERT-based text encoding, and InfoNCE-style contrastive alignment into a single four-task evaluation on real music datasets, with an explicit ablation isolating the contribution of fusion itself.
 
 \section{Problem Definition}
 Following the project specification, a music track is represented as a tuple $T = (X_{\text{audio}}, X_{\text{text}}, G, y)$, where $X_{\text{audio}}$ is a log-mel spectrogram or chroma feature matrix, $X_{\text{text}}$ is tokenized text (tags or metadata), $G = (V, E)$ is a music structure graph whose nodes are chords or time segments and whose edges are transitions or similarities, and $y$ is the target label set (genre, tags, or valence/arousal).
@@ -85,6 +95,75 @@ The attended text vector is concatenated with $g$ to form the fused representati
 \subsection{Task 4: Contrastive Dual-Encoder}
 A dual-encoder projects the GraphSAGE graph embedding and the BERT text embedding into a shared 128-dimensional L2-normalized space, trained with a symmetric InfoNCE loss (temperature 0.07) over in-batch negatives. Because MagnaTagATune does not include natural-language captions (unlike MusicCaps, which was not used here due to the added complexity of resolving and downloading audio from YouTube video IDs), each clip's tag set was joined into a short tag-based pseudo-caption (e.g. ``guitar classical slow'') to serve as the text side of each (audio, caption) pair. Unlike Task 1's original design flaw, this is not circular: the model is never asked to predict these tags back out, only to distinguish the correct audio clip from other candidates in the batch whose tag sets may substantially overlap, which is a genuine discrimination task.
 
+\section{Training Algorithms}
+This section summarizes the training procedure for each task as implemented, mirroring the algorithmic structure requested in the project specification.
+
+\begin{algorithm}[h]
+\caption{Task 1: BERT Multi-Label Tag Classifier}
+\begin{algorithmic}[1]
+\Require Metadata-text corpus $D = \{(X_{\text{text}}^{(i)}, y^{(i)})\}$, pretrained BERT, learning rate $\eta$, epochs $E$
+\State Add a randomly initialized linear head $W, b$ on top of the masked mean-pooled BERT output
+\For{$\text{epoch} = 1$ to $E$}
+  \For{each mini-batch in $D$}
+    \State $t \gets \text{MeanPool}(\text{BERT}(X_{\text{text}}))$
+    \State $\hat{y} \gets \sigma(Wt + b)$
+    \State $\mathcal{L} \gets \text{BCE}(y, \hat{y})$
+    \State Update head (and BERT, if not frozen) via $\eta \nabla \mathcal{L}$
+  \EndFor
+\EndFor
+\State \Return fine-tuned tag classifier
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[h]
+\caption{Task 2: GNN Encoder on Segment Graphs}
+\begin{algorithmic}[1]
+\Require Audio tracks $\{T_i\}$, label set $y$
+\For{each track $T$}
+  \State Extract chroma-based segment features $h_i^{(0)}$
+  \State Build graph $G = (V, E)$ (temporal + similarity edges)
+\EndFor
+\For{$\text{epoch} = 1$ to $E$}
+  \For{each graph $G$ in batch}
+    \For{layer $l = 0$ to $L-1$}
+      \State $h_i^{(l+1)} \gets \text{GraphSAGE}(h_i^{(l)}, N(i))$
+    \EndFor
+    \State $g \gets \text{MeanPool}(\{h_i^{(L)}\})$
+    \State $\mathcal{L} \gets \text{CE}(y, \sigma(Wg))$
+    \State Update GNN parameters
+  \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[h]
+\caption{Task 3: GNN-BERT Fusion}
+\begin{algorithmic}[1]
+\Require Paired data $(G, X_{\text{text}}, y)$
+\State $H_{\text{text}} \gets \text{BERT}(X_{\text{text}})$
+\State $g \gets \text{GNN-Readout}(G)$
+\State $z \gets \text{CrossAttention}(g, H_{\text{text}})$ \Comment{or CONCAT($g,t$)}
+\State $\hat{y} \gets \sigma(Wz + b)$
+\State $\mathcal{L} \gets \mathcal{L}_{\text{tags}} + \alpha \mathcal{L}_{\text{emotion}}$ \Comment{emotion term disabled, no DEAM data}
+\State Backprop through fusion, GNN, and (unfrozen) BERT parameters
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[h]
+\caption{Task 4: Contrastive GNN-BERT (Tag-Based Pseudo-Captions)}
+\begin{algorithmic}[1]
+\Require Paired $(G_i, \text{caption}_i)$, temperature $\tau$, batch size $N$
+\For{each training step}
+  \State $g_i \gets \text{Normalize}(\text{GNN}(G_i))$
+  \State $t_i \gets \text{Normalize}(\text{BERT}_{\text{pool}}(\text{caption}_i))$
+  \State $S_{ij} \gets g_i^\top t_j / \tau$
+  \State $\mathcal{L}_{\text{NCE}} \gets -\frac{1}{N}\sum_i \log \frac{\exp(S_{ii})}{\sum_j \exp(S_{ij})}$
+  \State Update encoders to minimize $\mathcal{L}_{\text{NCE}}$ (symmetrized over both directions)
+\EndFor
+\State Evaluate retrieval R@1, R@5, R@10 on held-out pairs
+\end{algorithmic}
+\end{algorithm}
+
 \section{Experimental Setup}
 All models were trained on CPU with the Adam optimizer. For frozen-encoder configurations (BERT weights held fixed, only downstream heads/projections trained), a learning rate of $1\times10^{-3}$ was used; for GNN-only training, also $1\times10^{-3}$; full BERT fine-tuning, where used, applied $2\times10^{-5}$. Task 2 used 15 training epochs with batch size 16. Task 1 and the Task 3 ablations used 5--8 epochs with batch size 16, given the frozen-encoder setup. Task 4 used 10 epochs with batch size 32, since InfoNCE benefits from a larger pool of in-batch negatives. All random seeds were fixed (seed 42) for reproducibility of data splits.
 
@@ -110,10 +189,10 @@ CNN (log-mel spectrogram) & 0.523 & 0.513 \\
 \end{table}
 
 \begin{figure}[h]
-    \centering
-    \includegraphics[width=0.9\linewidth]{gtzan_comparison.png}
-    \caption{Task 2 model comparison: Majority baseline, GNN, and CNN mel-spectrogram baseline.}
-    \label{fig:gtzan}
+\centering
+\includegraphics[width=0.9\linewidth]{gtzan_comparison.png}
+\caption{Task 2 model comparison: Majority baseline, GNN, and CNN mel-spectrogram baseline.}
+\label{fig:gtzan}
 \end{figure}
 
 This is a genuine, explainable negative result for the GNN relative to the CNN, not a bug: GTZAN genre labels correlate strongly with timbral and production characteristics (instrumentation, mixing style) that a mel-spectrogram directly encodes, whereas the chroma-based segment graph used here discards timbral information entirely, retaining only pitch-class content and its temporal/similarity structure. This motivates the fusion hypothesis tested in Task 3: structure alone is insufficient, and combining it with a complementary signal should help.
@@ -185,6 +264,12 @@ R@10 & 0.280 & 0.240 & 0.100 \\
 \end{figure}
 
 R@5 and R@10 are consistently 2--3$\times$ above chance in both retrieval directions, indicating that the dual-encoder learned genuine, non-trivial audio-text alignment. R@1 is close to chance, and none of ten manually inspected qualitative examples had their correct match within the top three retrieved candidates. We attribute this primarily to the use of tag-based pseudo-captions rather than real natural-language captions: many MagnaTagATune clips share overlapping tag sets (e.g. multiple tracks all tagged ``guitar, slow''), which imposes an inherent ceiling on exact top-1 retrieval accuracy regardless of model quality, since the text alone genuinely under-determines the correct match. Real MusicCaps-style captions, which describe far more clip-specific detail, would likely raise R@1 substantially; this is a natural direction for future work.
+
+\section{Implementation and Reproducibility}
+All code, cached example graphs, real-data results, and generated figures are publicly available at \url{https://github.com/turkishoreo/gnn-bert-music-context}, organized following the project's required structure: \texttt{src/} contains the four model implementations (\texttt{bert\_encoder.py}, \texttt{gnn\_model.py}, \texttt{fusion\_model.py}, \texttt{contrastive.py}) together with shared feature-extraction and graph-construction utilities (\texttt{audio\_features.py}, \texttt{graph\_builder.py}) and per-task training/evaluation scripts; \texttt{data/processed/examples/} holds 25 cached example graphs (exceeding the specification's minimum of 20); \texttt{results/} holds every real-data metrics JSON file and all four report figures; \texttt{notebooks/} contains an end-to-end inference demonstration. A lightweight synthetic-data code path (\texttt{--synthetic}) is also included and was used throughout development to verify that all four architectures ran correctly end-to-end before any time was invested in real audio preprocessing or BERT downloads --- synthetic-data metrics are pipeline sanity checks only and are not reported as results anywhere in this paper. Raw audio for GTZAN and MagnaTagATune is intentionally excluded from the repository (via \texttt{.gitignore}) since neither dataset's license permits redistribution; a documented data-preparation script (\texttt{prepare\_gtzan.py}, \texttt{prepare\_magnatagatune.py}) regenerates all cached features and splits from a local copy of each dataset.
+
+\section{Baseline Coverage}
+The project specification requires comparison against at least two baselines. This work implements three of the four suggested baselines across Tasks 2 and 3: a majority-class predictor (B1) and a CNN mel-spectrogram model (B2), both evaluated on GTZAN in Task 2; and a BERT-only model (B3), evaluated as part of the Task 3 four-way ablation on MagnaTagATune. A PCA+MLP baseline on hand-crafted audio features (B4) was not implemented, as it is marked optional in the specification and was deprioritized given the project timeline; it remains a natural addition for future work, and would be straightforward to add using the same chroma/mel features already extracted by \texttt{audio\_features.py}.
 
 \section{Discussion and Limitations}
 \label{sec:discussion}
